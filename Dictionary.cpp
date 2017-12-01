@@ -22,7 +22,9 @@ Dictionary::Dictionary(){
         this->dictionaryArr[i] = nullptr;
     }
     A = (sqrt(5) - 1)/2;
+    //A = 0.61803398875;
     this->collision = 0;
+    this->totalCollision = 0;
     this->lookupCollision = 0;
     this->counter = 0;
     
@@ -36,7 +38,7 @@ Dictionary::~Dictionary(){
 void Dictionary::readFile(){
     std::string row;
     std::string key;
-    std::ifstream myfile("/Users/jarvis/Desktop/Assignment 3/Assignment 3/ds-set-input.txt");
+    std::ifstream myfile("ds-set-input.txt");
     int j = 0;
     auto startDictionary= std::chrono::system_clock::now();
     auto endDictionary = std::chrono::system_clock::now();
@@ -60,7 +62,7 @@ void Dictionary::readFile(){
             startDictionary = std::chrono::system_clock::now();
             
             if(j == 999 || j == 9999 || j == 99999){
-                collisionVector.push_back(collision);
+                collisionVector.push_back(totalCollision);
             }
             insert(std::make_unique<BookCharacter>(page,line,index,character), atoi(key.c_str()));
             
@@ -76,13 +78,13 @@ void Dictionary::readFile(){
     std::cout << "Average number of collisions (first 1,000) || " << (float)collisionVector[0]/1000 << std::endl;
     std::cout << "Average number of collisions (first 10,000) || " << (float)collisionVector[1]/10000 << std::endl;
     std::cout << "Average number of collisions (first 100,000) || " << (float)collisionVector[2]/100000 << std::endl;
-    std::cout << "Average number of collisions (overall) || " << (float)this->collision/SIZE -1 << std::endl << std::endl ;
+    std::cout << "Average number of collisions (overall) || " << (float)this->totalCollision/SIZE -1 << std::endl << std::endl ;
     
 }
 
 void Dictionary::insert(BookCharPtr ptr, unsigned long long key){
     double B = A * (float) key;
-    double C = fmod(B,1);
+    double C = B - (int)B;
     double flr = (double)SIZE * C;
     int h = floor( flr );
     unsigned long long newKey;
@@ -95,29 +97,31 @@ void Dictionary::insert(BookCharPtr ptr, unsigned long long key){
         
     }
     else{
+        collision = 0 ;
         while(1){
             
             collision++;
             
             
             newKey = (unsigned long long)(h + (7 * this->collision) + (3 * this->collision * this->collision)) ;
-            newKey = fmod(newKey,SIZE);
+            newKey = newKey%SIZE;
             if(dictionaryArr[newKey] == nullptr){
                 break;
             }
         }
         dictionaryArr[newKey] = std::move(ptr);
+        totalCollision += collision;
         counter ++;
     }
 }
 
-unsigned long long Dictionary::probing(unsigned long long hash){
+unsigned long long Dictionary::probing(unsigned long long hash){//Not used same code but collision count goes much higher
     unsigned long long newKey;
     collision++;
     
     
     newKey = (unsigned long long)(hash + (7 * this->collision) + (3 * this->collision * this->collision)) ;
-    newKey = fmod(newKey,SIZE);
+    newKey = newKey % SIZE;
     if(dictionaryArr[newKey] == nullptr){
         return newKey;
     }
@@ -130,8 +134,8 @@ void Dictionary::lookup(){
     std::string row;
     std::string key,keyDictionary;
     unsigned long long newHash;
-    std::ifstream myfile("/Users/jarvis/Desktop/Assignment 3/Assignment 3/ds-set-lookup.txt");
-    std::ofstream out("/Users/jarvis/Desktop/Assignment 3/Assignment 3/ds-set-output-dictionary.txt");
+    std::ifstream myfile("ds-set-lookup.txt");
+    std::ofstream out("ds-set-output-dictionary.txt");
     int j = 0;
     
     auto startDictionary = std::chrono::system_clock::now();
@@ -154,7 +158,7 @@ void Dictionary::lookup(){
             BookCharPtr ptr = std::make_unique<BookCharacter>(page,line,index,"");
             
             double B = A * (atof(key.c_str()));
-            double C = fmod(B,1);
+            double C = B - (int)B;
             double flr = (double)SIZE * C;
             int h = floor( flr );
             
@@ -176,14 +180,13 @@ void Dictionary::lookup(){
             }
     
             endDictionary = std::chrono::system_clock::now();
-            
             elapsedSecondsDictionary = elapsedSecondsDictionary + ( endDictionary - startDictionary);
             out << ptr->getPage() << "\t" <<  ptr->getLine() << "\t" << ptr->getIndex() << "\t" << ptr->getCharacter() << "\n" ;
         }
     }
-    std::cout << "List  lookup finished after " << elapsedSecondsDictionary.count() << " seconds\n" << std::endl;
+    std::cout << "Dictionary  lookup finished after " << elapsedSecondsDictionary.count() << " seconds\n" << std::endl;
 }
-                           
+
 unsigned long long Dictionary::lookupProbing(unsigned long long hash,std::string key){
     std::string keyDictionary;
     unsigned long long newHash;
@@ -201,6 +204,19 @@ unsigned long long Dictionary::lookupProbing(unsigned long long hash,std::string
                 break;
             }
             
+        }
+        if(lookupCollision >5000){//If collision is too high look linearly
+            for(auto i = 0 ; i < SIZE-1 ; i++ )
+            {
+                if(dictionaryArr[i] != nullptr){
+                    keyDictionary = dictionaryArr[i]->getPage() + dictionaryArr[i]->getLine() + dictionaryArr[i]->getIndex();
+                    if( keyDictionary == key){
+                        return i;
+                    }
+                }
+                
+                
+            }
         }
     }
     return newHash;

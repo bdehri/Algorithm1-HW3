@@ -32,7 +32,7 @@ void List::readFile(){
     
     std::string row;
     std::string key;
-    std::ifstream myfile("/Users/jarvis/Desktop/Assignment 3/Assignment 3/ds-set-input.txt");
+    std::ifstream myfile("ds-set-input.txt");
     int j = 0;
     
     auto startList = std::chrono::system_clock::now();
@@ -72,10 +72,10 @@ void List::lookup(){
     
         std::string row;
         std::string keyList,keyFile;
-        std::ifstream myfile("/Users/jarvis/Desktop/Assignment 3/Assignment 3/ds-set-lookup.txt");
-        std::ofstream out("/Users/jarvis/Desktop/Assignment 3/Assignment 3/ds-set-output-list.txt");
+        std::ifstream myfile("ds-set-lookup.txt");
+        std::ofstream out("ds-set-output-list.txt");
     
-    
+
         auto startList = std::chrono::system_clock::now();
         auto endList = std::chrono::system_clock::now();
         std::chrono::duration<double> elapsedSecondsList ;
@@ -106,7 +106,7 @@ void List::lookup(){
                         
                 }
                 endList = std::chrono::system_clock::now();
-                
+
                 elapsedSecondsList = elapsedSecondsList + ( endList - startList);
                 out << ptr->getPage() << "\t" <<  ptr->getLine() << "\t" << ptr->getIndex() << "\t" << ptr->getCharacter() << "\n" ;
                 

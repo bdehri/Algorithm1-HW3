@@ -31,6 +31,7 @@ private:
     unsigned long long probing(unsigned long long hash);
     BookCharPtr dictionaryArr[SIZE];
     int collision;
+    int totalCollision;
     int lookupCollision;
     int counter;
     double A;
